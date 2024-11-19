@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // Altere para "sqlite" se estiver usando SQLite
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  name     String?
+  profile  Profile?
+  posts    Post[]
+  comments Comment[]
+}
+
+model Profile {
+  id     Int    @id @default(autoincrement())
+  bio    String
+  userId Int    @unique
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model Post {
+  id         Int         @id @default(autoincrement())
+  title      String
+  content    String?
+  published  Boolean     @default(false)
+  authorId   Int
+  author     User        @relation(fields: [authorId], references: [id])
+  category   Category?   @relation(fields: [categoryId], references: [id])
+  categoryId Int?
+  tags       Tag[]       @relation("PostTags")
+  comments   Comment[]
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  posts Post[]
+}
+
+model Tag {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  posts Post[] @relation("PostTags")
+}
+
+model Comment {
+  id        Int       @id @default(autoincrement())
+  content   String
+  postId    Int
+  post      Post      @relation(fields: [postId], references: [id])
+  authorId  Int
+  author    User      @relation(fields: [authorId], references: [id])
+  parentId  Int?
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   Comment[] @relation("CommentReplies")
+}
